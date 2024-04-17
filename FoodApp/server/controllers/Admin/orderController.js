@@ -2,7 +2,8 @@ const Rider = require("../../models/Rider")
 const User = require("../../models/User")
 const mongoose = require("mongoose")
 const asyncHandler = require("express-async-handler")
-const Order = require("../../models/Orders")
+const {Order,ProductOrdered}  = require("../../models/Orders")
+const Product = require("../../models/Product")
 
 
 //Admin can get all orders and users can not get all orders
@@ -13,63 +14,64 @@ const getAllUserOrder=asyncHandler(async(req,res)=>{
 })
 //Admin and users can create an order
 const createUserOrder = asyncHandler(async(req,res)=>{
-    const {user,rider,productname,amount} = req.body
-    if(!user || !productname || !amount) return res.status(400).json({message: "All fields required"})
-    // Validate rider ObjectId
-    if (!mongoose.Types.ObjectId.isValid(rider)) {
-        return res.status(400).json({ message: "Invalid rider ID" });
-    }
-    // Validate user ObjectId
+    const {user,orders} = req.body
+    if(!user || !orders) return res.status(400).json({message: "All fields required"})
     if (!mongoose.Types.ObjectId.isValid(user)) {
         return res.status(400).json({ message: "Invalid user ID" });
     }
     //check if user exist
     const userExist = await User.findOne({_id: user}).exec()
     if(!userExist) return res.status(400).json({message: "User does not exist"})
-    //check if rider exist
-    const riderExist = await Rider.findOne({_id: rider}).exec()
-    if(!riderExist) return res.status(400).json({message: "Rider does not exist"})
-    //Check if rider has been assigned a task
-    if(riderExist.user && riderExist.status !== "Finished") return res.status(400).json({message: "Rider already assigned a task"})
+    //check if product exist
+    let allproduct = []
+    await Promise.all(orders.map(async (order) => {
+        const productExist = await Product.findOne({ productname: order.name }).exec();
+        if (!productExist) return res.status(400).json({ message: "Product not found" });
+        // Create new product and push it to the array
+        const newProduct = await ProductOrdered.create({
+            productimage: productExist.productimage,
+            productname: order.name,
+            amount: productExist.productprice,
+            quantity: order.quantity
+        });
+        allproduct.push(newProduct);
+    }));
     const newOrder = await Order.create({
         user,
-        rider,
-        productname,
-        amount
+        products:allproduct
     })
-    riderExist.user = user
-    riderExist.status = "Not Completed"
-    riderExist.product = productname
-    const result = await riderExist.save()
     res.json(newOrder)
 })
 
 const updateUserOrder = asyncHandler(async(req,res)=>{
-    const {id,user,rider,productname,amount,status} = req.body
-    if(!id || !user || !rider) return res.status(400).json({message: "All fields required"})
-    const orderExist = await Order.findOne({_id: id}).exec()
+    const {orderid,userid,riderid,productid,status,productquantity} = req.body
+    if(!orderid || !userid || !riderid) return res.status(400).json({message: "All fields required"})
+    const orderExist = await Order.findOne({_id: orderid}).exec()
     if(!orderExist) return res.status(400).json({message: "Order does not exist"})
-    //check if user exist
-    const userExist = await User.findOne({_id: user}).lean().exec()
-    if(!userExist) return res.status(400).json({message:"User does not exist"})
+    //check if user exists
+    const userExist = await Order.findOne({user: userid}).lean().exec()
+    if(!userExist) return res.status(400).json({message:"User does not own order you are trying to update"})
+    //check if product exist
+    const productExist = orderExist.products.find((product)=> product._id == productid)
+    if(!productExist) return res.status(400).json({message:"Product does not exist"})
     //check if rider exist
-    const riderExist  = await Rider.findOne({_id: rider}).exec()
+    const riderExist  = await Rider.findOne({_id: riderid}).exec()
     if(!riderExist) return res.status(400).json({message:"Rider does not exist"})
-    //check if rider is already assigned task
+    // check if rider is already assigned task
     if(riderExist.user && riderExist.status !== "Finished") return res.status(400).json({message: "Rider already assigned to a task"})
-    if(user){
-        // orderExist.user = user
-        riderExist.user = user
+    if(userid){
+        riderExist.user = userid
     }
-    if(rider){
-        orderExist.rider = rider
+    if(riderid){
+        if(status == "Finished"){
+            riderExist.orders = null
+            riderExist.user = null
+        }else{
+            riderExist.orders = userExist.products
+        }
     }
-    if(productname){
-        orderExist.productname = productname
-        riderExist.product = productname
-    }
-    if(amount){
-        orderExist.amount = amount
+    if(productquantity){
+        productExist.quantity = productquantity
     }
     if(status){
         orderExist.status = status

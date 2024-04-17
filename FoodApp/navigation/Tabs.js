@@ -40,7 +40,7 @@ const Tabs = () => {
         }
       }}
     >
-        <Tab.Screen name='Home' component={Home} options={{
+        <Tab.Screen name='Homer' component={Home} options={{
           tabBarIcon: ({focused})=>(
             <View style={{alignItems:"center",justifyContent:"center",top:10}}>
              <Icon1 name="home" size={30} color={focused ? "#e32f45" : "#748c94"}/>

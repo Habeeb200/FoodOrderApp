@@ -18,6 +18,18 @@ const userSchema = new Schema({
     active:{
         type: Boolean,
         default: false
+    },
+    image:{
+        type:String
+    },
+    email:{
+        type:String
+    },
+    phone:{
+        type:Number
+    },
+    address:{
+        type:String
     }
 })
 

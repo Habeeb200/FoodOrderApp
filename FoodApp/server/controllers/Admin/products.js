@@ -29,14 +29,15 @@ const getAllProductName=asyncHandler(async(req,res)=>{
     res.json(results)
 })
 const addProduct=asyncHandler(async(req,res)=>{
-    const {image,name,category,price,quantity} = req.body
-    if(!image || !name || !category || !price|| !quantity) return res.status(400).json({message: "All fields are required"})
+    const {image,name,category,price} = req.body
+    if(!image || !name || !category || !price) return res.status(400).json({message: "All fields are required"})
+    const productExist = await Product.findOne({productname:name}).exec()
+    if(productExist)return res.status(400).json({message: "Product already exists"})
     const result = await Product.create({
         productimage: image,
         productname: name,
         productprice: price,
         productcategory: category,
-        quantity
     })
     res.status(200).json({message: "Product has been successfully added"})
 })

@@ -26,9 +26,7 @@ const riderSchema = new Schema({
     status:{
         type:String,
     },
-    product:{
-        type:String
-    },
+    orders:[],
     active:{
         type: Boolean,
         default: false

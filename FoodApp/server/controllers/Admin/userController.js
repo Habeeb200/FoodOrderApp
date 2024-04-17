@@ -1,7 +1,7 @@
 const User  = require("../../models/User")
 const bcrypt = require("bcrypt")
 const asyncHandler = require("express-async-handler")
-
+const mongoose = require("mongoose")
 //Get all users
 const getAllUser = asyncHandler(async(req,res)=>{
     const result = await User.find().select("-password")
@@ -25,20 +25,27 @@ const createUser = asyncHandler(async(req,res)=>{
 
 //update a user
 const updateUser = asyncHandler(async(req,res)=>{
-    const {id,username,password,active} = req.body
+    const ids = req.params
+    const id = new mongoose.Types.ObjectId(ids)
+    const {username,image,email,phone,address} = req.body
     if(!id)return res.status(400).json({message: "User Id Required"})
-    const findUser = await User.findById(id).exec()
+    const findUser = await User.findOne({_id: id}).exec()
     if(!findUser)return res.status(400).json({message: "Could not find User"})
     //check for duplicate
-    const duplicate = await User.findOne({username}).lean().exec()
-    if(duplicate && duplicate?._id.toString() !== id){
-        return res.status(409).json({message: "Duplicate User"})
+    if(username){
+        findUser.username = username
     }
-    findUser.username = username
-    findUser.active = active
-
-    if(password){
-        findUser.password = await bcrypt.hash(password,10)
+    if(image){
+        findUser.image = image
+    }
+    if(email){
+        findUser.email = email
+    }
+    if(phone){
+        findUser.phone = phone
+    }
+    if(address){
+        findUser.address = address
     }
     const result = await findUser.save()
     res.json({message: `User ${username} successfully updated`})
@@ -55,4 +62,21 @@ const deleteUser = asyncHandler(async(req,res)=>{
     const reply = `User with username:${findUser.username} and id ${id} successfully deleted`
     res.json(reply)
 })
-module.exports = {getAllUser,createUser,updateUser,deleteUser}
+
+//get a user
+const getUser = asyncHandler(async(req,res)=>{
+    const{name} = req.params
+    if(!name) return res.status(400).json({message: "Username required"})
+    const findUser = await User.findOne({username: name}).select("-password").exec()
+    if(!findUser)return res.status(400).json({message:"User does not exist"})
+    res.status(200).json(findUser)
+})
+const getUserById = asyncHandler(async(req,res)=>{
+    const id = req.userId
+    if(!id) return res.status(400).json({message: "Username required"})
+    const findUser = await User.findOne({_id: id}).exec()
+    console.log(findUser)
+    if(!findUser)return res.status(400).json({message:"User does not exist"})
+    res.status(200).json(findUser)
+})
+module.exports = {getAllUser,createUser,updateUser,deleteUser,getUser,getUserById}

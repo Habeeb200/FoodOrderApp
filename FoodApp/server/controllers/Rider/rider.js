@@ -1,4 +1,5 @@
-const Orders = require("../../models/Orders")
+const {Order,ProductOrdered}  = require("../../models/Orders")
+const Product = require("../../models/Product")
 const Rider = require("../../models/Rider")
 const User = require("../../models/User")
 const bcrypt = require("bcrypt")
@@ -20,14 +21,14 @@ const loginRider=asyncHandler(async(req,res)=>{
 const seeRiderTask=asyncHandler(async(req,res)=>{
     const {id} = req.body
     if(!id)return res.status(400).json({messsage: "Rider Id required"})
-    const findOrders = await Orders.find({rider: id}).exec()
+    const findOrders = await Order.find({rider: id}).exec()
     if(!findOrders.length) return res.status(400).json({message: "No orders found"})
     res.json(findOrders)
 })
 const updateTransaction = asyncHandler(async(req,res)=>{
     const {id,status} = req.body
     if(!id || !status) return res.status(400).json({message: "All fields required"})
-    const findOrder = await Orders.findOne({_id: id}).exec()
+    const findOrder = await Order.findOne({_id: id}).exec()
     if(!findOrder)return res.status(400).json({message: "Cannot find order"})
     if(status == "Finished"){
         findOrder.status = status

@@ -51,18 +51,23 @@ export const CATEGORIES2=[
 export const DATA = [
   {
     title: 'All',
+    image: require("../assets/Food/grilled.jpg")
   },
   {
     title: 'Cuisines',
+    image: require("../assets/Food/cuisine.jpg")
   },
   {
     title: 'Ingredients',
+    image:  require("../assets/Food/sea.jpg")
   },
   {
     title: 'Dietary',
+    image: require("../assets/Food/diary.jpg")
   },
   {
     title: 'Preparation',
+    image: require("../assets/Food/baked.jpg")
   },
 ];
 

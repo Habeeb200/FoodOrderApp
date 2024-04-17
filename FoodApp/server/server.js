@@ -6,9 +6,11 @@ const mongoose = require("mongoose")
 const cors = require("cors")
 const handleError = require("./middleware/errorHandler")
 const corsOption = require("./middleware/cors")
+const cookieParser = require("cookie-parser")
 require("dotenv").config()
 app.use(cors());
 app.use(express.json())
+app.use(cookieParser())
 dbConn()
 app.get("/",(req,res)=>{
     res.send("Hello")

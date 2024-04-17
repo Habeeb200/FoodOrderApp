@@ -3,7 +3,8 @@ const router = express.Router()
 const {getAllUserOrder,createUserOrder,updateUserOrder,deleteUserOrder} = require("../controllers/Admin/orderController")
 const {getAllProduct,getAllProductCategory,getAllProductName,addProduct,updateProduct,deleteProduct} = require("../controllers/Admin/products")
 const {getAllRider,createRider,updateRider,deleteRider}  = require("../controllers/Admin/riderController")
-const {getAllUser,createUser,updateUser,deleteUser} = require("../controllers/Admin/userController")
+const {getAllUser,createUser,updateUser,deleteUser,getUser,getUserById} = require("../controllers/Admin/userController")
+const verifyAccessToken = require("../middleware/verifyJwt")
 router.route("/order")
     .get(getAllUserOrder)
     .post(createUserOrder)
@@ -24,7 +25,11 @@ router.route("/rider")
 router.route("/user")
     .get(getAllUser)
     .post(createUser)
-    .put(updateUser)
     .delete(deleteUser)
+router.put("/update/:id",updateUser)
+router.get("/users/:name",getUser)
+router.use(verifyAccessToken);
+router.get("/user/id",getUserById)
+
 
 module.exports = router
